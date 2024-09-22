@@ -1,0 +1,4 @@
+host_amd/logs/*
+host_amd/devel/*
+host_amd/build/*
+host_amd/.catkin_tools

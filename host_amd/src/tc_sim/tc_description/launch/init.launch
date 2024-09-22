@@ -1,0 +1,29 @@
+<launch>
+
+  <!-- Start Camera -->
+  <include file="$(find mynt_eye_ros_wrapper)/launch/mynteye.launch" />   
+
+  <!-- Start Lidar -->
+  <!-- modify parameters inside this launch file -->
+  <include file="$(find sick_tim)/launch/tc_tim571.launch" />
+
+
+  <!-- Start robot model -->
+  <arg name="model" default="$(find tc_description)/urdf/tc_viz.xacro"/>
+  <arg name="gui" default="false" />
+  
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model)" />
+  
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+
+  <!-- Remap necessary TF -->
+  <node pkg="tf" type="tf_remap" name="tf_remapper" output="screen">
+    <rosparam param="mappings">
+      - {old: "/myntai_link",
+         new: "/mynteye_link"}
+    </rosparam>
+  </node>
+  
+</launch>

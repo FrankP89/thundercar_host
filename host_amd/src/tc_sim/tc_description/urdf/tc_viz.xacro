@@ -1,0 +1,394 @@
+<?xml version="1.0"?>
+<robot name="thundercar" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- General purpose testing file -->
+
+  <!-- Constants for robot dimensions -->
+  <xacro:property name="Pi"              value="3.1415926535897931"/>
+  <xacro:property name="mass_body"       value="3.00"    />		<!-- Mass of car        -->
+  <xacro:property name="mass_wheel"      value="0.341"   />		<!-- Mass of wheel      -->
+  <xacro:property name="mass_lidar"      value="0.100"   />		<!-- Mass of lidar      -->
+  <xacro:property name="width_body"      value="0.628"   />		<!-- Width of car       -->
+  <xacro:property name="length_body"     value="0.948"   />		<!-- Length of car      -->
+  <xacro:property name="height_body"     value="0.282"   />		<!-- Height of car      -->
+  <xacro:property name="diam_wheel"      value="0.1105"  />   <!-- Diameter of wheel  -->
+  <xacro:property name="thickness_wheel" value="0.0452"  />   <!-- Thickness of wheel -->
+  <xacro:property name="diam_lidar"      value="0.075"   />		<!-- Angle of lidar     -->
+  <xacro:property name="thickness_lidar" value="0.045"   />		<!-- Thickness of wheel -->
+  <xacro:property name="safety_offset"   value="1.25"    />		<!-- Percentage safety  -->
+
+ 
+  <!-- Gazebo initializer -->
+  <!-- Import all Gazebo-customization elements, including Gazebo colors -->
+  <!--xacro:include filename="$(find tc_description)/urdf/tc_params.gazebo" /-->
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find tc_description)/urdf/materials.xacro"      />
+
+  <!-- Other mechanical elements -->
+  <!-- Import Wheels -->
+  <xacro:include filename="$(find tc_description)/urdf/wheel.urdf.xacro" /> 
+
+  <!-- SICK sensor (Lidar) -->
+  <xacro:include filename="$(find tc_description)/urdf/sick_tim.urdf.xacro" />
+  
+
+
+  <!-- World Used for fixing robot in Gazebo -->
+  <link name="world"/>
+
+  <joint name="fixed" type="fixed">
+    <parent link="world"/>
+    <child link="base_footprint"/>
+  </joint>
+
+  <!-- BASE-FOOTPRINT -->
+  <!-- base_footprint is a fictitious link(frame) that is on the ground right below base_link origin -->
+  <link name="base_footprint">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+            <box size="0.001 0.001 0.001" />
+        </geometry>
+    </visual>
+  </link>
+
+  <!-- BASE-LINK -->
+  <joint name="base_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="0 0 0.0275" rpy="0 0 0" />
+    <parent link="base_footprint"/>
+    <child link="base_link" />
+  </joint>
+  
+  <link name="base_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>	
+        <mesh filename="package://tc_description/meshes/stl/traxxas_base.stl" scale="0.01 0.01 0.01" />	
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--box size="0.948 0.636 0.3"/-->
+	<mesh filename="package://tc_description/meshes/stl/traxxas_base.stl" scale="0.01 0.01 0.01" />
+      </geometry>      
+    </collision>
+  </link>
+
+
+  <!-- ABS Plastic Lower Support -->
+  <joint name="low_plate_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="0 0 0.0885" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="low_plate_link" />
+  </joint>
+  
+  <link name="low_plate_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/low_plate.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/low_plate.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link>
+
+
+  <!-- SICK Sensor -->
+  <xacro:sick_tim571 name="laser" ros_topic="scan" parent_frame="low_plate_link"/>
+
+      
+
+  <!-- joint name="sick571_joint" type="fixed">
+    <!- Distance from floor to lower surface of traxxas chassis>
+    <origin xyz="0.1415 0 -0.0254" rpy="0 0 0" />
+    <parent link="low_plate_link"/>
+    <child link="sick571_link" />
+  </joint>  
+
+  <link name="sick571_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/tim_571.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/tim_571.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link-->
+
+  <!-- SICK Sensor support >
+  <joint name="sick571_support_joint" type="fixed">
+    < Distance from floor to lower surface of traxxas chassis>
+    <origin xyz="0 0 -0.006" rpy="0 0 ${Pi/2}" />
+    <parent link="sick571_link"/>
+    <child link="sick571_support_link" />
+  </joint>
+  
+  <link name="sick571_support_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/tim_571_support.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/tim_571_support.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link -->  
+
+
+  <!-- Nano Jetson -->
+  <joint name="jetson_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="-0.0645 0.040 0.00814" rpy="0 0 0" />
+    <parent link="low_plate_link"/>
+    <child link="jetson_link" />
+  </joint>
+  
+  <link name="jetson_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/nano_jetson.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/nano_jetson.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link>
+
+  <!-- Arduino -->
+  <joint name="arduino_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="0.0345 0.040 0.00814" rpy="0 0 ${Pi/2}" />
+    <parent link="low_plate_link"/>
+    <child link="arduino_link" />
+  </joint>
+  
+  <link name="arduino_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/arduino.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/arduino.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link>
+
+
+  <!-- ABS Plastic Upper Support -->
+  <joint name="up_plate_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="-0.02 0 0.0814" rpy="0 0 0" />
+    <parent link="low_plate_link"/>
+    <child link="up_plate_link" />
+  </joint>
+  
+  <link name="up_plate_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/upper_plate.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/upper_plate.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link>
+
+
+  <!-- MyntEYE S 1030 -->
+  <joint name="mynteye_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="-0.060 -0.016 0.0" rpy="0 0 0" />
+    <parent link="mynteye_hole_link"/>
+    <child link="mynteye_link" />
+  </joint>
+  
+  <link name="mynteye_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <box size="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+        <box size="0.001 0.001 0.001"/>
+      </geometry>      
+    </collision>
+  </link>
+
+
+  <!-- MyntAI S support -->
+  <joint name="myntai_support_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="0.12455 0 0.006" rpy="0 0 0" />
+    <parent link="up_plate_link"/>
+    <child link="myntai_support_link" />
+  </joint>
+  
+  <link name="myntai_support_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/myntai_support.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/myntai_support.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link>
+
+
+<!-- MyntAI S Hole -->
+  <joint name="myntai_hole_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="0.040 0.0 ${0.0270}" rpy="${Pi/2} ${Pi} ${Pi/2}" />
+    <parent link="myntai_support_link"/>
+    <child link="mynteye_hole_link" />
+  </joint>
+  
+  <link name="mynteye_hole_link">
+    <visual>
+      <origin rpy="${-Pi/2} 0 ${Pi}" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/myntai_s1030.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+        <mesh filename="package://tc_description/meshes/stl/myntai_s1030.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>      
+    </collision>
+  </link>
+
+
+  <!-- Battery -->
+  <joint name="battery_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="0.0 0.0 0.006" rpy="0 0 0" />
+    <parent link="up_plate_link"/>
+    <child link="battery_link" />
+  </joint>
+  
+  <link name="battery_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/battery.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/battery.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link>
+
+  <!-- Bluetooth Antenna -->
+  <joint name="antenna_bt_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="-0.115 -0.025 0.006" rpy="0 0 0" />
+    <parent link="up_plate_link"/>
+    <child link="antenna_bt_link" />
+  </joint>
+  
+  <link name="antenna_bt_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/antenna.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/antenna.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link>
+
+    <!-- Wi-Fi Antenna -->
+  <joint name="antenna_wf_joint" type="fixed">
+    <!--Distance from floor to lower surface of traxxas chassis-->
+    <origin xyz="-0.115 -0.050 0.006" rpy="0 0 0" />
+    <parent link="up_plate_link"/>
+    <child link="antenna_wf_link" />
+  </joint>
+  
+  <link name="antenna_wf_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>  
+        <mesh filename="package://tc_description/meshes/stl/antenna.stl" scale="0.1 0.1 0.1" /> 
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+      <mesh filename="package://tc_description/meshes/stl/antenna.stl" scale="0.1 0.1 0.1" />
+      </geometry>      
+    </collision>
+  </link>
+
+
+
+
+  <!-- Wheel Definitions -->
+  <wheels rf="back"  lr="left"  parent="base_link" translateX="-1" translateY="1" translateZ="1" flipX="0" flipY="0"/>
+  <wheels rf="back"  lr="right" parent="base_link" translateX="-1" translateY="-1"  translateZ="1" flipX="2" flipY="1"/>
+  <hinge_wheels rf="front" lr="left"  parent="left_hinge" translateX="1"  translateY="1" translateZ="1" flipX="0" flipY="0"/>
+  <hinge_wheels rf="front" lr="right" parent="right_hinge" translateX="1"  translateY="-1"  translateZ="1" flipX="2" flipY="1"/>
+  
+  <!-- Hinges for front wheels -->
+  <hinges lr="left" parent="base_link" translateX="1" translateY="1" translateZ="1" flipY="0" />
+  <hinges lr="right" parent="base_link" translateX="1" translateY="-1" translateZ="1" flipY="0" />
+
+
+</robot>
