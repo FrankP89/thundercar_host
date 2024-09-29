@@ -10,6 +10,7 @@ Ensure that there gazebo package is installed
 # To compile
 Head to host_amd/ and execute:
 - colcon build
+- source install/local_setup.bash
 
 Tip: feel free to remove any build/ install/ log/ folder.
 
