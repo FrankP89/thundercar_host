@@ -23,4 +23,10 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+install(PROGRAMS  
+  scripts/display.py  
+  scripts/init.py
+  scripts/only_frames.py
+  DESTINATION lib/${PROJECT_NAME} )
+
 ament_package()
