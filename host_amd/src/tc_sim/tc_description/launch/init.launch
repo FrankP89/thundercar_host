@@ -1,7 +1,9 @@
 <launch>
 
   <!-- Start Camera -->
-  <include file="$(find mynt_eye_ros_wrapper)/launch/mynteye.launch" />   
+  <!-- <include file="$(find mynt_eye_ros_wrapper)/launch/mynteye.launch" />   -->
+  <include file="$(find orbbec_camera)/launch/femto_bolt.launch" />  
+
 
   <!-- Start Lidar -->
   <!-- modify parameters inside this launch file -->
