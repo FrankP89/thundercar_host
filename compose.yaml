@@ -1,21 +1,4 @@
 
-# services:
-
-#   ros1_bridge_app:
-#     build: 
-#       context: ./ros_noetic_ros2_foxy/
-#       dockerfile: Dockerfile
-#     # image: ros:humble-ros-base-jammy
-#     environment:
-#       # - "ROS_HOSTNAME=bridge"
-#       - "ROS_MASTER_URI=http://192.168.0.46:11311"
-#       - "ROS_IP=192.168.0.18"
-#     restart: always
-#     # privileged: true
-#     # Attach a bash shell to the container
-#     tty: true
-    
-
 services:
   ros1:
     build:
@@ -23,14 +6,30 @@ services:
       dockerfile: Dockerfile
     tty: true
 
-  ros2:
+  ros2:  
+    # image: osrf/ros:humble-desktop
     build:
       context: ./ros2_humble/
       dockerfile: Dockerfile
+    environment:
+      - "DISPLAY=${DISPLAY}"
+      - "QT_X11_NO_MITSHM=1"
+      # - "ROS_MASTER_URI=http://192.168.0.46:11311"
+      # - "ROS_IP=192.168.0.18"
+    volumes:
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+      - "/etc/localtime:/etc/localtime:ro"
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    command: rviz2
     tty: true
 
   bridge:
-    image: ros:foxy-ros1-bridge
+    image: ros:foxy-ros1-bridge # Need to use foxy
     environment:
       - "ROS_HOSTNAME=bridge"
       - "ROS_MASTER_URI=http://ros1:11311"
