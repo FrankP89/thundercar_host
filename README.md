@@ -4,13 +4,13 @@ This repository hosts the code for the host computer to see the robot visualizat
 
 ## To execute this repository
 
-docker compose up
+- docker compose up -d
 
 
 -------------------------
 Troubleshoot with Docker -> 
 
-(Is the docker daemon running?):
+(Is the docker daemon running? [Could be caused by Docker Desktops]):
 
 For Ubuntu 22.04 on:
 - docker context ls
