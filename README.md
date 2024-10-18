@@ -8,11 +8,14 @@ docker compose up
 
 
 -------------------------
-Troubleshoot with Docker:
+Troubleshoot with Docker -> 
+
+(Is the docker daemon running?):
 
 For Ubuntu 22.04 on:
 - docker context ls
 - docker context use default
+
 
 In case of user permission, enable docker for your current user:
 - sudo usermod -aG docker $USER

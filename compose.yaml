@@ -23,17 +23,17 @@ services:
       dockerfile: Dockerfile
     tty: true
 
-  # ros2:
-  #   build:
-  #     context: ./ros2_humble/
-  #     dockerfile: Dockerfile
-  #   tty: true
+  ros2:
+    build:
+      context: ./ros2_humble/
+      dockerfile: Dockerfile
+    tty: true
 
-  # bridge:
-  #   image: ros:foxy-ros1-bridge
-  #   environment:
-  #     - "ROS_HOSTNAME=bridge"
-  #     - "ROS_MASTER_URI=http://ros1:11311"
-  #     # - "ROS_MASTER_URI=http://192.168.0.46:11311"
-  #     # - "ROS_IP=192.168.0.18"
-  #   command: ros2 run ros1_bridge dynamic_bridge
+  bridge:
+    image: ros:foxy-ros1-bridge
+    environment:
+      - "ROS_HOSTNAME=bridge"
+      - "ROS_MASTER_URI=http://ros1:11311"
+      # - "ROS_MASTER_URI=http://192.168.0.46:11311"
+      # - "ROS_IP=192.168.0.18"
+    command: ros2 run ros1_bridge dynamic_bridge
