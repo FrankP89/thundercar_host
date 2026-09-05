@@ -40,6 +40,7 @@ sudo apt install \
   ros-jazzy-depth-image-proc \
   ros-jazzy-xacro \
   ros-jazzy-robot-state-publisher \
+  ros-jazzy-joint-state-publisher \
   ros-jazzy-rviz2
 
 # Optional: standalone Harmonic CLI tools

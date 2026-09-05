@@ -9,11 +9,12 @@ import os
 import shlex
 import subprocess
 
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import PackageNotFoundError, get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
+    LogInfo,
     OpaqueFunction,
     SetEnvironmentVariable,
     TimerAction,
@@ -41,7 +42,6 @@ def _setup(context, *args, **kwargs):
     teleop = LaunchConfiguration('teleop')
 
     urdf_file = os.path.join(tc_desc, 'urdf', 'tc.urdf.xacro')
-    bridge_config = os.path.join(tc_gazebo, 'config', 'ros_gz_bridge.yaml')
     rviz_config = os.path.join(tc_gazebo, 'rviz', 'sim.rviz')
 
     # Expand xacro once so both RSP and gz spawn get the same URDF+plugin XML
@@ -94,20 +94,40 @@ def _setup(context, *args, **kwargs):
         }],
     )
 
-    # Always publish /joint_states so wheel TFs exist in RViz.
-    # Merges /gz_joint_states from Gazebo when the bridge is alive; otherwise zeros.
-    jsp = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-        output='screen',
-        parameters=[{
-            'robot_description': robot_xml,
-            'use_sim_time': True,
-            'source_list': ['gz_joint_states'],
-            'rate': 50.0,
-        }],
-    )
+    # Prefer joint_state_publisher; otherwise bridge gz joints directly to /joint_states
+    actions_after_rsp = []
+    has_jsp = False
+    try:
+        get_package_share_directory('joint_state_publisher')
+        has_jsp = True
+    except PackageNotFoundError:
+        has_jsp = False
+
+    if has_jsp:
+        bridge_config = os.path.join(tc_gazebo, 'config', 'ros_gz_bridge.yaml')
+        actions_after_rsp.append(
+            Node(
+                package='joint_state_publisher',
+                executable='joint_state_publisher',
+                name='joint_state_publisher',
+                output='screen',
+                parameters=[{
+                    'robot_description': robot_xml,
+                    'use_sim_time': True,
+                    'source_list': ['gz_joint_states'],
+                    'rate': 50.0,
+                }],
+            )
+        )
+    else:
+        bridge_config = os.path.join(tc_gazebo, 'config', 'ros_gz_bridge_no_jsp.yaml')
+        actions_after_rsp.append(
+            LogInfo(
+                msg='joint_state_publisher not installed — bridging gz joints to '
+                '/joint_states directly. Optional improve RViz wheels with:\n'
+                '  sudo apt install ros-jazzy-joint-state-publisher'
+            )
+        )
 
     # Delay spawn until the world (and physics) is up
     spawn = TimerAction(
@@ -212,7 +232,7 @@ def _setup(context, *args, **kwargs):
         set_ign_path,
         gz_sim,
         rsp,
-        jsp,
+        *actions_after_rsp,
         spawn,
         bridge,
         odom_tf,
