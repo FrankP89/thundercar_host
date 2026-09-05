@@ -9,7 +9,13 @@ import shutil
 
 from ament_index_python.packages import PackageNotFoundError, get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
+from launch.actions import (
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    LogInfo,
+    OpaqueFunction,
+    TimerAction,
+)
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -45,38 +51,47 @@ def _setup(context, *args, **kwargs):
 
     actions = []
 
-    # --- Keyboard (default) ------------------------------------------------
+    # Orphaned keyboard terminals from prior sims keep publishing and make the
+    # car creep. Kill them first, then start a single teleop after a short delay.
+    actions.append(
+        ExecuteProcess(
+            cmd=['bash', '-c', 'pkill -f keyboard_ackermann || true'],
+            output='screen',
+        )
+    )
+
+    teleop_nodes = []
+
     if use_keyboard:
         prefix = _terminal_prefix()
         if prefix:
-            actions.append(
+            teleop_nodes.append(
                 LogInfo(msg=f'Starting keyboard Ackermann teleop in a new terminal ({prefix}).')
             )
-            actions.append(
+            teleop_nodes.append(
                 Node(
                     package='tc_control',
                     executable='keyboard_ackermann',
                     name='keyboard_ackermann',
                     output='screen',
                     prefix=prefix,
-                    parameters=[{'topic': '/ackermann_cmd'}],
+                    parameters=[{'topic': '/ackermann_cmd', 'use_sim_time': True}],
                 )
             )
-            actions.append(
+            teleop_nodes.append(
                 LogInfo(
-                    msg='Keyboard: w/s speed, a/d steer, space stop, q quit '
-                    '(publishes /ackermann_cmd).'
+                    msg='Keyboard: w/s speed, a/d steer, space stop, q quit. '
+                    'Close old teleop terminals if the car creeps.'
                 )
             )
         else:
-            actions.append(
+            teleop_nodes.append(
                 LogInfo(
                     msg='No gnome-terminal/xterm/konsole found. Start keyboard teleop yourself:\n'
                     '  ros2 run tc_control keyboard_ackermann'
                 )
             )
 
-    # --- Joystick (optional; ignored if packages missing) ------------------
     if use_joystick:
         if _joy_packages_available():
             joy_teleop_cfg = PathJoinSubstitution(
@@ -85,18 +100,17 @@ def _setup(context, *args, **kwargs):
             joy_node_cfg = PathJoinSubstitution(
                 [FindPackageShare('tc_control'), 'config', 'joy_node.yaml']
             )
-            actions.append(LogInfo(msg='Starting joystick teleop (hold Left Bumper to drive).'))
-            actions.append(
+            teleop_nodes.append(LogInfo(msg='Starting joystick teleop (hold Left Bumper to drive).'))
+            teleop_nodes.append(
                 Node(
                     package='joy',
                     executable='joy_node',
                     name='joy_node',
                     parameters=[joy_node_cfg],
-                    # Do not take down the whole sim if no gamepad is plugged in
                     respawn=False,
                 )
             )
-            actions.append(
+            teleop_nodes.append(
                 Node(
                     package='joy_teleop',
                     executable='joy_teleop',
@@ -106,7 +120,7 @@ def _setup(context, *args, **kwargs):
                 )
             )
         else:
-            actions.append(
+            teleop_nodes.append(
                 LogInfo(
                     msg='use_joystick:=true but joy/joy_teleop are not installed — ignoring. '
                     'Install ros-jazzy-joy ros-jazzy-joy-teleop, or use keyboard teleop.'
@@ -114,7 +128,7 @@ def _setup(context, *args, **kwargs):
             )
 
     if not use_keyboard and not use_joystick:
-        actions.append(
+        teleop_nodes.append(
             LogInfo(
                 msg='No teleop enabled. Drive with:\n'
                 '  ros2 run tc_control keyboard_ackermann\n'
@@ -122,6 +136,8 @@ def _setup(context, *args, **kwargs):
             )
         )
 
+    # Delay so pkill finishes before a new keyboard starts
+    actions.append(TimerAction(period=1.0, actions=teleop_nodes))
     return actions
 
 

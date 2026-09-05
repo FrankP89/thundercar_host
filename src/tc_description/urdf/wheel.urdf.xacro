@@ -53,13 +53,13 @@
       <child link="${rf}_${lr}_wheel"/>
       <origin xyz="${translateX * base_x_origin_to_wheel_origin} ${translateY * base_y_origin_to_wheel_origin} ${translateZ * base_z_origin_to_wheel_origin}" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
-      <dynamics damping="0.1" friction="0.0"/>
+      <dynamics damping="0.5" friction="0.05"/>
     </joint>
 
     <gazebo reference="${rf}_${lr}_wheel">
-      <!-- Higher lateral grip so steered wheels pull the chassis into a yaw -->
-      <mu1>2.5</mu1>
-      <mu2>2.5</mu2>
+      <!-- Enough grip to resist sideways slide at rest, still driveable -->
+      <mu1>12.0</mu1>
+      <mu2>8.0</mu2>
       <kp>1000000.0</kp>
       <kd>100.0</kd>
       <minDepth>0.001</minDepth>
@@ -96,7 +96,7 @@
       <origin xyz="${translateX * base_x_origin_to_hinge_origin} ${translateY * base_y_origin_to_hinge_origin} ${translateZ * base_z_origin_to_hinge_origin}" rpy="0 0 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="-0.6" upper="0.6" effort="20" velocity="5"/>
-      <dynamics damping="0.5" friction="0.0"/>
+      <dynamics damping="1.0" friction="0.1"/>
     </joint>
   </xacro:macro>
 
@@ -128,12 +128,12 @@
       <child link="${rf}_${lr}_wheel"/>
       <origin xyz="0 ${translateY * 0.0165} 0" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
-      <dynamics damping="0.1" friction="0.0"/>
+      <dynamics damping="0.5" friction="0.05"/>
     </joint>
 
     <gazebo reference="${rf}_${lr}_wheel">
-      <mu1>2.5</mu1>
-      <mu2>2.5</mu2>
+      <mu1>12.0</mu1>
+      <mu2>8.0</mu2>
       <kp>1000000.0</kp>
       <kd>100.0</kd>
       <minDepth>0.001</minDepth>

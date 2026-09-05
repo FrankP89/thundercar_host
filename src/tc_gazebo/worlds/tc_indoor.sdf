@@ -38,6 +38,19 @@
               <size>40 40</size>
             </plane>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>80</mu2>
+              </ode>
+              <bullet>
+                <friction>1.0</friction>
+                <friction2>0.8</friction2>
+                <rolling_friction>0.15</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
         <visual name="visual">
           <geometry>

@@ -237,6 +237,7 @@ def _setup(context, *args, **kwargs):
             'ackermann_topic': '/ackermann_cmd',
             'twist_topic': '/cmd_vel',
             'wheelbase': 0.34,
+            'cmd_timeout': 0.2,
             'use_sim_time': True,
         }],
     )

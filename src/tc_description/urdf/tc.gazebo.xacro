@@ -29,6 +29,11 @@
         <wheel_radius>0.05525</wheel_radius>
         <steering_limit>0.6</steering_limit>
         <steer_p_gain>10000</steer_p_gain>
+        <!-- Soft brake when cmd stops; still allows normal accel -->
+        <min_velocity>-2.0</min_velocity>
+        <max_velocity>2.0</max_velocity>
+        <min_acceleration>-4.0</min_acceleration>
+        <max_acceleration>3.0</max_acceleration>
         <topic>/model/thundercar/cmd_vel</topic>
         <odom_topic>/model/thundercar/odometry_wheel</odom_topic>
         <frame_id>odom</frame_id>

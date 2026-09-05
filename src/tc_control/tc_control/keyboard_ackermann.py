@@ -3,6 +3,7 @@
 
 import sys
 import termios
+import time
 import tty
 
 import rclpy
@@ -27,22 +28,34 @@ class KeyboardAckermann(Node):
     def __init__(self):
         super().__init__('keyboard_ackermann')
         self.declare_parameter('topic', '/ackermann_cmd')
-        self.declare_parameter('speed_step', 0.2)
+        self.declare_parameter('speed_step', 0.1)
         self.declare_parameter('steer_step', 0.05)
-        self.declare_parameter('max_speed', 1.5)
+        self.declare_parameter('max_speed', 0.4)
         self.declare_parameter('max_steer', 0.5)
+        # 0 = latch speed until space/q (normal teleop). >0 = auto-stop after idle.
+        self.declare_parameter('idle_stop_sec', 0.0)
 
         topic = self.get_parameter('topic').value
         self.speed_step = float(self.get_parameter('speed_step').value)
         self.steer_step = float(self.get_parameter('steer_step').value)
         self.max_speed = float(self.get_parameter('max_speed').value)
         self.max_steer = float(self.get_parameter('max_steer').value)
+        self.idle_stop_sec = float(self.get_parameter('idle_stop_sec').value)
 
         self.speed = 0.0
         self.steer = 0.0
+        self._last_key_time = time.monotonic()
         self.pub = self.create_publisher(AckermannDriveStamped, topic, 10)
-        self.timer = self.create_timer(0.05, self._publish)
+        self.timer = self.create_timer(0.05, self._on_timer)
         self.get_logger().info(HELP)
+
+    def _on_timer(self):
+        if self.idle_stop_sec > 0.0 and self.speed != 0.0:
+            idle = time.monotonic() - self._last_key_time
+            if idle > self.idle_stop_sec:
+                self.speed = 0.0
+                self.steer = 0.0
+        self._publish()
 
     def _publish(self):
         msg = AckermannDriveStamped()
@@ -55,6 +68,8 @@ class KeyboardAckermann(Node):
     def apply_key(self, key: str) -> bool:
         if key in ('q', '\x03'):
             return False
+
+        self._last_key_time = time.monotonic()
 
         if key in ('w', 'up'):
             # Always forward: if stopped/reversing, start forward; else speed up
@@ -80,17 +95,27 @@ class KeyboardAckermann(Node):
         return True
 
 
-def _get_key():
-    """Read one key; map arrow escape sequences to up/down/left/right."""
+def _get_key(timeout_sec: float = 0.05):
+    """Read one key with timeout; map arrow escape sequences."""
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     try:
-        tty.setraw(fd)
+        tty.setcbreak(fd)
+        import select
+        ready, _, _ = select.select([sys.stdin], [], [], timeout_sec)
+        if not ready:
+            return ''
         ch = sys.stdin.read(1)
         if ch == '\x1b':
-            # Arrow keys: ESC [ A/B/C/D
+            # Arrow keys: ESC [ A/B/C/D — short follow-up wait
+            ready2, _, _ = select.select([sys.stdin], [], [], 0.02)
+            if not ready2:
+                return ''
             nxt = sys.stdin.read(1)
             if nxt == '[':
+                ready3, _, _ = select.select([sys.stdin], [], [], 0.02)
+                if not ready3:
+                    return ''
                 arrow = sys.stdin.read(1)
                 return {
                     'A': 'up',
@@ -110,7 +135,7 @@ def main(args=None):
     try:
         while rclpy.ok():
             rclpy.spin_once(node, timeout_sec=0.0)
-            key = _get_key()
+            key = _get_key(0.05)
             if not key:
                 continue
             if not node.apply_key(key):
