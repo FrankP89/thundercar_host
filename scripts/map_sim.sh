@@ -2,11 +2,13 @@
 # Start online SLAM against a running Thundercar Gazebo sim.
 #
 # Prefer starting sim WITHOUT its RViz (avoids two RViz + TF spam):
-#   ros2 launch tc_gazebo sim.launch.py rviz:=false
+#   ros2 launch tc_gazebo sim_lvl16.launch.py rviz:=false
+#   # teleop is capped at 0.4 m/s — keep a slow constant pace while mapping
 #
 # Then:
 #   ./scripts/map_sim.sh
-# Drive around, then:  ./scripts/save_map.sh [name]
+#   # or: ros2 launch tc_gazebo map_lvl16.launch.py
+# Drive slowly, then:  ./scripts/save_map.sh [name]
 
 set -eo pipefail
 

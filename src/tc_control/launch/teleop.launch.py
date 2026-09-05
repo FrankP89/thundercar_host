@@ -48,6 +48,8 @@ def _setup(context, *args, **kwargs):
     use_keyboard = LaunchConfiguration('use_keyboard').perform(context).lower() in (
         'true', '1', 'yes',
     )
+    max_speed = float(LaunchConfiguration('max_speed').perform(context))
+    speed_step = float(LaunchConfiguration('speed_step').perform(context))
 
     actions = []
 
@@ -66,7 +68,10 @@ def _setup(context, *args, **kwargs):
         prefix = _terminal_prefix()
         if prefix:
             teleop_nodes.append(
-                LogInfo(msg=f'Starting keyboard Ackermann teleop in a new terminal ({prefix}).')
+                LogInfo(
+                    msg=f'Starting keyboard teleop (max_speed={max_speed} m/s). '
+                    'For mapping keep a slow constant pace — avoid stop/start bursts.'
+                )
             )
             teleop_nodes.append(
                 Node(
@@ -75,7 +80,12 @@ def _setup(context, *args, **kwargs):
                     name='keyboard_ackermann',
                     output='screen',
                     prefix=prefix,
-                    parameters=[{'topic': '/ackermann_cmd', 'use_sim_time': True}],
+                    parameters=[{
+                        'topic': '/ackermann_cmd',
+                        'use_sim_time': True,
+                        'max_speed': max_speed,
+                        'speed_step': speed_step,
+                    }],
                 )
             )
             teleop_nodes.append(
@@ -152,6 +162,16 @@ def generate_launch_description():
             'use_joystick',
             default_value='false',
             description='Start joy + joy_teleop if those packages are installed',
+        ),
+        DeclareLaunchArgument(
+            'max_speed',
+            default_value='0.4',
+            description='Keyboard teleop speed cap [m/s] (0.4 suits mapping)',
+        ),
+        DeclareLaunchArgument(
+            'speed_step',
+            default_value='0.1',
+            description='Keyboard speed increment per keypress [m/s]',
         ),
         OpaqueFunction(function=_setup),
     ])

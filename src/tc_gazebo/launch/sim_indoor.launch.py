@@ -49,6 +49,8 @@ def _setup(context, *args, **kwargs):
                 'use_keyboard': LaunchConfiguration('use_keyboard').perform(context),
                 'use_joystick': LaunchConfiguration('use_joystick').perform(context),
                 'use_sim_time': LaunchConfiguration('use_sim_time').perform(context),
+                'max_speed': LaunchConfiguration('max_speed').perform(context),
+                'speed_step': LaunchConfiguration('speed_step').perform(context),
             }.items(),
         ),
     ]
@@ -67,5 +69,11 @@ def generate_launch_description():
         DeclareLaunchArgument('use_keyboard', default_value='true'),
         DeclareLaunchArgument('use_joystick', default_value='false'),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument(
+            'max_speed',
+            default_value='0.4',
+            description='Keyboard speed cap [m/s] — keep ≤0.4 while mapping',
+        ),
+        DeclareLaunchArgument('speed_step', default_value='0.1'),
         OpaqueFunction(function=_setup),
     ])

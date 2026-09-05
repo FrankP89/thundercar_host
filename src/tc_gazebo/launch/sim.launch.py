@@ -265,6 +265,8 @@ def _setup(context, *args, **kwargs):
         launch_arguments={
             'use_keyboard': LaunchConfiguration('use_keyboard'),
             'use_joystick': LaunchConfiguration('use_joystick'),
+            'max_speed': LaunchConfiguration('max_speed'),
+            'speed_step': LaunchConfiguration('speed_step'),
         }.items(),
     )
 
@@ -333,6 +335,16 @@ def generate_launch_description():
             'use_joystick',
             default_value='false',
             description='Joystick teleop if joy packages are installed; otherwise ignored',
+        ),
+        DeclareLaunchArgument(
+            'max_speed',
+            default_value='0.4',
+            description='Keyboard teleop speed cap [m/s] (keep low for mapping)',
+        ),
+        DeclareLaunchArgument(
+            'speed_step',
+            default_value='0.1',
+            description='Keyboard speed step [m/s]',
         ),
         # OpaqueFunction so spawn pose / world path are concrete strings
         OpaqueFunction(function=_setup),

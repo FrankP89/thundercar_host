@@ -100,10 +100,13 @@ ros2 launch tc_gazebo sim_indoor.launch.py use_joystick:=true
 Origin at map center; spawn is the lower-left corridor.
 
 ```bash
-# Drive / map
+# Drive / map — keep slow constant speed (teleop capped at 0.4 m/s)
 ros2 launch tc_gazebo sim_lvl16.launch.py rviz:=false   # terminal 1
-./scripts/map_sim.sh                                    # terminal 2
+ros2 launch tc_gazebo map_lvl16.launch.py               # terminal 2
 ./scripts/save_map.sh lvl16
+
+# Faster free driving (not for mapping):
+# ros2 launch tc_gazebo sim_lvl16.launch.py max_speed:=1.2
 
 # Navigate
 ros2 launch tc_gazebo sim_lvl16.launch.py for_nav:=true  # terminal 1
@@ -112,10 +115,14 @@ ros2 launch tc_gazebo nav_lvl16.launch.py                # terminal 2
 
 Remap after switching worlds — old maps won’t match.
 
+**Mapping tip:** drive slowly and steadily. High speed or stop/start bursts
+make slam_toolbox warp the map (especially in long corridors).
+
 ### Drive
 
 - **Keyboard** (default when `teleop:=true`): a new terminal opens with WASD control.
   - `w` / `s` — speed, `a` / `d` — steering, `space` — stop, `q` — quit
+  - Default **max speed 0.4 m/s** (mapping-safe); raise with `max_speed:=1.2`
   - Publishes `/ackermann_cmd`
   - If no terminal emulator is found, run manually:
 
@@ -171,12 +178,13 @@ colcon build --symlink-install --packages-select tc_gazebo
 source install/setup.bash
 
 # Start mapping (prefer sim without its own RViz)
-#   ros2 launch tc_gazebo sim.launch.py rviz:=false
+#   ros2 launch tc_gazebo sim_lvl16.launch.py rviz:=false
+#   ros2 launch tc_gazebo map_lvl16.launch.py
 ./scripts/map_sim.sh
 # or:  ros2 launch tc_gazebo slam.launch.py
 #
-# SLAM RViz Fixed Frame starts as odom (avoids TF drop spam). After the map
-# builds, you can switch Fixed Frame to map.```
+# Drive slowly and steadily (teleop max_speed defaults to 0.4 m/s).
+# SLAM RViz Fixed Frame is map; switch to odom only if TF warnings appear.
 
 Drive the indoor world with keyboard teleop. When the map looks good:
 

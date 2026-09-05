@@ -21,6 +21,9 @@ Keyboard Ackermann teleop
   x         : center steering
   space     : stop (speed + steer)
   q         : quit
+
+Default max speed is 0.4 m/s (good for mapping). Raise with:
+  ros2 launch ... max_speed:=1.2
 """
 
 
