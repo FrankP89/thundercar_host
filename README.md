@@ -103,12 +103,30 @@ ros2 run tc_control keyboard_ackermann
 | Color | `/camera/color/image_raw`, `/camera/color/camera_info` |
 | Depth | `/camera/depth/image_raw`, `/camera/depth/camera_info` |
 | Points | `/camera/depth/points` |
-| Odometry | `/odom`, TF `odom` → `base_link` |
+| Odometry | `/odom` (Gazebo ground-truth pose), TF `odom` → `base_link` |
+| Wheel odom (diag) | `/odom_wheel` (Ackermann-integrated; not used for TF) |
 | Drive cmd | `/ackermann_cmd` (`ackermann_msgs/AckermannDriveStamped`) |
 | Camera mount | `camera_link` (~0.145, 0, 0.203 m in `base_link`) |
 
-Sim uses Gazebo ground-truth odometry instead of `rf2o` / VESC. Sensors and
-actuators are emulated — no Orbbec, SICK, or VESC drivers in this workspace.
+Sim uses Gazebo **ground-truth** model pose for `/odom` (via `OdometryPublisher`),
+not wheel-integrated Ackermann odom — so laser walls stay fixed in RViz when
+Fixed Frame is `odom`. Sensors and actuators are emulated — no Orbbec, SICK, or
+VESC drivers in this workspace.
+
+### Check odom / laser / TF (walls should stay fixed)
+
+After a full relaunch (`colcon build`, kill leftover `gz sim`, then `sim.launch.py`):
+
+```bash
+ros2 topic echo /odom --once          # header.frame_id=odom, child_frame_id=base_link
+ros2 topic echo /scan --once          # header.frame_id=laser
+ros2 run tf2_tools view_frames        # odom -> base_link -> ... -> laser
+```
+
+In RViz set **Fixed Frame** to `odom`. Drive straight at a wall corner — the
+corner stays fixed on the grid while the robot approaches it. If walls slide
+with the robot, Fixed Frame is likely still `base_link`, or an old sim process
+is still publishing wheel odom on `/odom`.
 
 ## SLAM / localization (goal B)
 

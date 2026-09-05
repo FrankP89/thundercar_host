@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """Convert AckermannDriveStamped to Twist for Gazebo AckermannSteering.
 
-Publishes zeros when commands go stale so the car does not keep the last
-non-zero cmd_vel (common cause of 'drifts with no input').
+Gazebo recovers steer angle from bicycle kinematics:
+  turning_radius = v / w ,  phi = atan(L / radius)
+so we publish w = v * tan(delta) / L to preserve the commanded steer angle.
+
+The plugin then sets both hinge angles and matching L/R wheel speeds — that
+avoids the scrubbing you get from DiffDrive (equal rear speeds) + steered fronts.
+
+Publishes zeros when commands go stale so the car does not keep moving.
 """
 
 import math
@@ -20,7 +26,6 @@ class AckermannToTwist(Node):
         self.declare_parameter('ackermann_topic', '/ackermann_cmd')
         self.declare_parameter('twist_topic', '/cmd_vel')
         self.declare_parameter('wheelbase', 0.34)
-        # Stop commanding motion if no Ackermann msg for this long [s]
         self.declare_parameter('cmd_timeout', 0.25)
 
         ack_topic = self.get_parameter('ackermann_topic').value
@@ -35,7 +40,6 @@ class AckermannToTwist(Node):
         self.sub = self.create_subscription(
             AckermannDriveStamped, ack_topic, self._cb, 10
         )
-        # 20 Hz: keep sending zeros (or last cmd) so gz never holds a stale twist
         self.create_timer(0.05, self._timer_cb)
         self.get_logger().info(
             f'Bridging {ack_topic} -> {twist_topic} '
@@ -48,10 +52,9 @@ class AckermannToTwist(Node):
 
         twist = Twist()
         twist.linear.x = speed
-        if abs(self.wheelbase) > 1e-6 and abs(speed) > 1e-6:
+        if abs(self.wheelbase) > 1e-6 and abs(speed) > 1e-3:
             twist.angular.z = speed * math.tan(steering) / self.wheelbase
         else:
-            # No forward speed => no yaw command (avoids spinning in place from steer bias)
             twist.angular.z = 0.0
 
         self._last_twist = twist
@@ -79,7 +82,10 @@ def main(args=None):
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':

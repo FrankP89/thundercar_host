@@ -2,8 +2,8 @@
 """Republish odom -> base_link TF from nav_msgs/Odometry (sim ground truth).
 
 Uses the odometry header stamp so LaserScan / other sensors (also sim-stamped)
-transform correctly. Using clock-now here makes walls 'slide' with the robot in
-RViz (scan at time T drawn with TF at time T+dt).
+transform correctly. Forces frame names to odom/base_link even if Gazebo
+publishes prefixed ids (e.g. thundercar/base_link).
 """
 
 import rclpy
@@ -46,6 +46,7 @@ class OdomToTf(Node):
 
         t = TransformStamped()
         t.header.stamp = stamp
+        # Canonical frames — ignore any Gazebo-prefixed frame_ids in the message
         t.header.frame_id = self.odom_frame
         t.child_frame_id = self.base_frame
         t.transform.translation.x = msg.pose.pose.position.x

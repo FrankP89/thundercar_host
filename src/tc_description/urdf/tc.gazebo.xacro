@@ -4,17 +4,22 @@
   <!-- Gazebo Harmonic plugins and RGB-D sensors for Thundercar -->
   <xacro:macro name="thundercar_gazebo">
 
-    <!-- Chassis friction / contact -->
+    <!-- Chassis: keep collision off the ground so it does not scrape/slide -->
     <gazebo reference="base_link">
-      <mu1>0.2</mu1>
-      <mu2>0.2</mu2>
+      <mu1>0.0</mu1>
+      <mu2>0.0</mu2>
     </gazebo>
 
-    <!-- Ackermann steering (rear drive, front steer) -->
+    <!-- Single AckermannSteering: sets steer angles AND matching L/R wheel
+         speeds together (kinematically consistent — no DiffDrive scrubbing).
+         Drive all four wheels like the Gazebo ackermann_steering demo.
+         Wheel odom is demoted; ground-truth /odom comes from OdometryPublisher. -->
     <gazebo>
       <plugin filename="gz-sim-ackermann-steering-system"
               name="gz::sim::systems::AckermannSteering">
+        <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>back_left_wheel_joint</left_joint>
+        <right_joint>front_right_wheel_joint</right_joint>
         <right_joint>back_right_wheel_joint</right_joint>
         <left_steering_joint>left_hinge_joint</left_steering_joint>
         <right_steering_joint>right_hinge_joint</right_steering_joint>
@@ -22,13 +27,24 @@
         <kingpin_width>0.210</kingpin_width>
         <wheel_base>0.340</wheel_base>
         <wheel_radius>0.05525</wheel_radius>
-        <!-- Moderate gains: huge P can chatter steering and induce yaw drift -->
-        <steer_p_gain>100.0</steer_p_gain>
-        <steer_d_gain>10.0</steer_d_gain>
+        <steering_limit>0.6</steering_limit>
+        <steer_p_gain>10000</steer_p_gain>
         <topic>/model/thundercar/cmd_vel</topic>
-        <odom_topic>/model/thundercar/odometry</odom_topic>
+        <odom_topic>/model/thundercar/odometry_wheel</odom_topic>
         <frame_id>odom</frame_id>
         <child_frame_id>base_link</child_frame_id>
+        <odom_publish_frequency>50</odom_publish_frequency>
+        <tf_topic>/model/thundercar/tf_ackermann</tf_topic>
+      </plugin>
+    </gazebo>
+
+    <!-- Ground-truth odom from model world pose (canonical /odom source) -->
+    <gazebo>
+      <plugin filename="gz-sim-odometry-publisher-system"
+              name="gz::sim::systems::OdometryPublisher">
+        <odom_frame>odom</odom_frame>
+        <robot_base_frame>base_link</robot_base_frame>
+        <odom_topic>/model/thundercar/odometry</odom_topic>
         <odom_publish_frequency>50</odom_publish_frequency>
       </plugin>
     </gazebo>

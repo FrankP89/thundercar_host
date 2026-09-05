@@ -47,6 +47,13 @@
   gz_type_name: "gz.msgs.Odometry"
   direction: GZ_TO_ROS
 
+# Wheel-integrated odom from AckermannSteering (diagnostic only)
+- ros_topic_name: "/odom_wheel"
+  gz_topic_name: "/model/thundercar/odometry_wheel"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
 - ros_topic_name: "/cmd_vel"
   gz_topic_name: "/model/thundercar/cmd_vel"
   ros_type_name: "geometry_msgs/msg/Twist"
