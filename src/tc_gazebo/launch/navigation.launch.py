@@ -21,6 +21,12 @@ from nav2_common.launch import RewrittenYaml
 def generate_launch_description():
     pkg = get_package_share_directory('tc_gazebo')
     default_params = os.path.join(pkg, 'config', 'nav2_params.yaml')
+    default_bt = os.path.join(
+        pkg, 'behavior_trees', 'navigate_to_pose_w_backup_first.xml'
+    )
+    default_bt_through = os.path.join(
+        pkg, 'behavior_trees', 'navigate_through_poses_w_backup_first.xml'
+    )
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     params_file = LaunchConfiguration('params_file')
@@ -42,7 +48,10 @@ def generate_launch_description():
         RewrittenYaml(
             source_file=params_file,
             root_key='',
-            param_rewrites={},
+            param_rewrites={
+                'default_nav_to_pose_bt_xml': default_bt,
+                'default_nav_through_poses_bt_xml': default_bt_through,
+            },
             convert_types=True,
         ),
         allow_substs=True,
