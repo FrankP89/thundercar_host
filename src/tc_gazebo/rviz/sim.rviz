@@ -6,13 +6,10 @@ Panels:
         - /Global Options1
         - /RobotModel1
         - /LaserScan1
-        - /Odometry1
       Splitter Ratio: 0.5
     Tree Height: 400
   - Class: rviz_common/Selection
     Name: Selection
-  - Class: rviz_common/Tool Properties
-    Name: Tool Properties
   - Class: rviz_common/Views
     Name: Views
 Visualization Manager:
@@ -22,7 +19,7 @@ Visualization Manager:
       Name: Grid
       Enabled: true
       Cell Size: 1
-      Plane Cell Count: 20
+      Plane Cell Count: 40
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz_default_plugins/RobotModel
@@ -34,6 +31,7 @@ Visualization Manager:
     - Class: rviz_default_plugins/TF
       Name: TF
       Enabled: true
+      Frame Timeout: 1
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/LaserScan
@@ -46,6 +44,7 @@ Visualization Manager:
     - Class: rviz_default_plugins/Odometry
       Name: Odometry
       Enabled: true
+      Keep: 1
       Topic:
         Value: /odom
       Value: true
@@ -72,16 +71,19 @@ Visualization Manager:
     - Class: rviz_default_plugins/MoveCamera
     - Class: rviz_default_plugins/Select
     - Class: rviz_default_plugins/FocusCamera
-    - Class: rviz_default_plugins/Measure
-    - Class: rviz_default_plugins/SetInitialPose
-    - Class: rviz_default_plugins/PublishPoint
   Value: true
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 8
+      Distance: 12
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
       Name: Current View
-      Pitch: 0.6
+      Near Clip Distance: 0.01
+      Pitch: 0.7
+      Target Frame: <Fixed Frame>
       Yaw: 0.8
 Window Geometry:
   Height: 900

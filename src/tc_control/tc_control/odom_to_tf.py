@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Republish odom -> base_link TF from nav_msgs/Odometry (sim ground truth)."""
+"""Republish odom -> base_link TF from nav_msgs/Odometry (sim ground truth).
+
+Uses the odometry header stamp so LaserScan / other sensors (also sim-stamped)
+transform correctly. Using clock-now here makes walls 'slide' with the robot in
+RViz (scan at time T drawn with TF at time T+dt).
+"""
 
 import rclpy
 from geometry_msgs.msg import TransformStamped
@@ -14,15 +19,12 @@ class OdomToTf(Node):
         self.declare_parameter('odom_topic', '/odom')
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
-        # Use clock-now for TF stamps (avoids TF_OLD_DATA when /odom stamps
-        # reset or lag after Gazebo restarts while RViz stays up).
-        self.declare_parameter('use_odom_stamp', False)
 
         topic = self.get_parameter('odom_topic').value
         self.odom_frame = self.get_parameter('odom_frame').value
         self.base_frame = self.get_parameter('base_frame').value
-        self.use_odom_stamp = bool(self.get_parameter('use_odom_stamp').value)
 
+        self._last_stamp_ns = None
         self.br = TransformBroadcaster(self)
         self.sub = self.create_subscription(Odometry, topic, self._cb, 50)
         self.get_logger().info(
@@ -30,11 +32,20 @@ class OdomToTf(Node):
         )
 
     def _cb(self, msg: Odometry):
+        stamp = msg.header.stamp
+        stamp_ns = stamp.sec * 10**9 + stamp.nanosec
+        # Skip backwards jumps after Gazebo restart (avoids TF_OLD_DATA spam)
+        if self._last_stamp_ns is not None and stamp_ns < self._last_stamp_ns:
+            self.get_logger().warn(
+                'odom stamp went backwards — resetting TF timeline',
+                throttle_duration_sec=2.0,
+            )
+            self._last_stamp_ns = None
+            return
+        self._last_stamp_ns = stamp_ns
+
         t = TransformStamped()
-        if self.use_odom_stamp:
-            t.header.stamp = msg.header.stamp
-        else:
-            t.header.stamp = self.get_clock().now().to_msg()
+        t.header.stamp = stamp
         t.header.frame_id = self.odom_frame
         t.child_frame_id = self.base_frame
         t.transform.translation.x = msg.pose.pose.position.x
