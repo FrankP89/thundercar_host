@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
-<!-- Figure-8 corridor from blueprint (long wall 22.12 m, north wall 12.74 m).
-     Origin at map center. Uniform 1.55 m aisle (N/E/S/W + mid waist) between
-     outer walls and two solid islands. NW / SE stubs match the drawing. -->
+<!-- Figure-8 corridor from blueprint (long wall 22.12 m, north edge 12.74 m).
+     Origin at map center. Uniform 1.55 m aisle (N/E/S/W + mid waist).
+     NW / SE stubs are driveable alcoves connected to the N/S aisles. -->
 <sdf version="1.9">
   <world name="tc_lvl16">
     <physics name="1ms" type="ignored">
@@ -68,19 +68,21 @@
 
     <!--
       Figure-8 corridor. Uniform aisle width C=1.55 m on N/E/S/W and at the waist.
-        H=22.12  W_north=12.74 = main_w(10.633) + stub(2.107)
+        H=22.12  north_edge=12.74 = main_w(10.633) + stub(2.107)
         wall_t=0.20  island 7.133 x 8.535
-      Origin = geometric center of overall footprint.
+      NW / SE stubs are open alcoves reachable from the N/S aisles (side walls
+      stop short so the corridor turns into the stub).
+      Origin = geometric center of main body (180° symmetry).
     -->
 
-    <!-- Outer west wall (main body); outer face at x=-5.3167 -->
+    <!-- Outer west wall: stops at north-aisle south edge so NW stub is open -->
     <model name="wall_outer_west">
       <static>true</static>
-      <pose>-5.2167 0 1.0 0 0 0</pose>
+      <pose>-5.2167 -0.775 1.0 0 0 0</pose>
       <link name="link">
-        <collision name="c"><geometry><box><size>0.20 22.12 2.0</size></box></geometry></collision>
+        <collision name="c"><geometry><box><size>0.20 20.17 2.0</size></box></geometry></collision>
         <visual name="v">
-          <geometry><box><size>0.20 22.12 2.0</size></box></geometry>
+          <geometry><box><size>0.20 20.17 2.0</size></box></geometry>
           <material>
             <ambient>0.92 0.92 0.94 1</ambient>
             <diffuse>0.98 0.98 1.0 1</diffuse>
@@ -90,14 +92,14 @@
       </link>
     </model>
 
-    <!-- Outer east wall (main body); outer face at x=+5.3167 -->
+    <!-- Outer east wall: stops at south-aisle north edge so SE stub is open -->
     <model name="wall_outer_east">
       <static>true</static>
-      <pose>5.2167 0 1.0 0 0 0</pose>
+      <pose>5.2167 0.775 1.0 0 0 0</pose>
       <link name="link">
-        <collision name="c"><geometry><box><size>0.20 22.12 2.0</size></box></geometry></collision>
+        <collision name="c"><geometry><box><size>0.20 20.17 2.0</size></box></geometry></collision>
         <visual name="v">
-          <geometry><box><size>0.20 22.12 2.0</size></box></geometry>
+          <geometry><box><size>0.20 20.17 2.0</size></box></geometry>
           <material>
             <ambient>0.92 0.92 0.94 1</ambient>
             <diffuse>0.98 0.98 1.0 1</diffuse>
@@ -107,7 +109,7 @@
       </link>
     </model>
 
-    <!-- Outer north wall (main + NW stub) length 12.74; outer face at y=+11.06 -->
+    <!-- Outer north wall (main + NW stub) -->
     <model name="wall_outer_north">
       <static>true</static>
       <pose>-1.0533 10.96 1.0 0 0 0</pose>
@@ -124,7 +126,7 @@
       </link>
     </model>
 
-    <!-- Outer south wall (main + SE stub) length 12.74; outer face at y=-11.06 -->
+    <!-- Outer south wall (main + SE stub) -->
     <model name="wall_outer_south">
       <static>true</static>
       <pose>1.0533 -10.96 1.0 0 0 0</pose>
@@ -141,10 +143,24 @@
       </link>
     </model>
 
-    <!-- Stub end caps (close the wing tips) -->
+    <!-- NW stub alcove: south wall + west end cap (open to north aisle on the east) -->
+    <model name="wall_stub_nw_south">
+      <static>true</static>
+      <pose>-6.37 9.21 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>2.1066 0.20 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>2.1066 0.20 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
     <model name="wall_stub_nw_end">
       <static>true</static>
-      <pose>-6.27 10.085 1.0 0 0 0</pose>
+      <pose>-7.3233 10.085 1.0 0 0 0</pose>
       <link name="link">
         <collision name="c"><geometry><box><size>0.20 1.55 2.0</size></box></geometry></collision>
         <visual name="v">
@@ -156,9 +172,25 @@
         </visual>
       </link>
     </model>
+
+    <!-- SE stub alcove: north wall + east end cap (open to south aisle on the west) -->
+    <model name="wall_stub_se_north">
+      <static>true</static>
+      <pose>6.37 -9.21 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>2.1066 0.20 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>2.1066 0.20 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
     <model name="wall_stub_se_end">
       <static>true</static>
-      <pose>6.27 -10.085 1.0 0 0 0</pose>
+      <pose>7.3233 -10.085 1.0 0 0 0</pose>
       <link name="link">
         <collision name="c"><geometry><box><size>0.20 1.55 2.0</size></box></geometry></collision>
         <visual name="v">
