@@ -13,10 +13,13 @@ from rclpy.node import Node
 HELP = """
 Keyboard Ackermann teleop
 -------------------------
-  w/s : speed +/-
-  a/d : steering +/-
-  space : stop
-  q : quit
+  w / ↑     : forward (always)
+  s / ↓     : backward (always)
+  a / ←     : steer left
+  d / →     : steer right
+  x         : center steering
+  space     : stop (speed + steer)
+  q         : quit
 """
 
 
@@ -52,29 +55,53 @@ class KeyboardAckermann(Node):
     def apply_key(self, key: str) -> bool:
         if key in ('q', '\x03'):
             return False
-        if key == 'w':
-            self.speed = min(self.max_speed, self.speed + self.speed_step)
-        elif key == 's':
-            self.speed = max(-self.max_speed, self.speed - self.speed_step)
-        elif key == 'a':
+
+        if key in ('w', 'up'):
+            # Always forward: if stopped/reversing, start forward; else speed up
+            if self.speed <= 0.0:
+                self.speed = self.speed_step
+            else:
+                self.speed = min(self.max_speed, self.speed + self.speed_step)
+        elif key in ('s', 'down'):
+            # Always backward
+            if self.speed >= 0.0:
+                self.speed = -self.speed_step
+            else:
+                self.speed = max(-self.max_speed, self.speed - self.speed_step)
+        elif key in ('a', 'left'):
             self.steer = min(self.max_steer, self.steer + self.steer_step)
-        elif key == 'd':
+        elif key in ('d', 'right'):
             self.steer = max(-self.max_steer, self.steer - self.steer_step)
+        elif key == 'x':
+            self.steer = 0.0
         elif key == ' ':
             self.speed = 0.0
             self.steer = 0.0
         return True
 
 
-def _getch():
+def _get_key():
+    """Read one key; map arrow escape sequences to up/down/left/right."""
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     try:
         tty.setraw(fd)
         ch = sys.stdin.read(1)
+        if ch == '\x1b':
+            # Arrow keys: ESC [ A/B/C/D
+            nxt = sys.stdin.read(1)
+            if nxt == '[':
+                arrow = sys.stdin.read(1)
+                return {
+                    'A': 'up',
+                    'B': 'down',
+                    'C': 'right',
+                    'D': 'left',
+                }.get(arrow, '')
+            return ''
+        return ch
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
-    return ch
 
 
 def main(args=None):
@@ -83,7 +110,9 @@ def main(args=None):
     try:
         while rclpy.ok():
             rclpy.spin_once(node, timeout_sec=0.0)
-            key = _getch()
+            key = _get_key()
+            if not key:
+                continue
             if not node.apply_key(key):
                 break
     except KeyboardInterrupt:
@@ -93,7 +122,10 @@ def main(args=None):
         node.steer = 0.0
         node._publish()
         node.destroy_node()
-        rclpy.shutdown()
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':
