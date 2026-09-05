@@ -71,16 +71,46 @@ source install/setup.bash
 ```bash
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
+```
+
+**Per-map sim launches** (preferred):
+
+```bash
+ros2 launch tc_gazebo sim_lvl16.launch.py      # figure-8 blueprint world
+ros2 launch tc_gazebo sim_indoor.launch.py     # small indoor room
+```
+
+Generic (any world path):
+
+```bash
 ros2 launch tc_gazebo sim.launch.py
 ```
 
-Useful args:
+Useful args (also work on `sim_lvl16` / `sim_indoor`):
 
 ```bash
-ros2 launch tc_gazebo sim.launch.py rviz:=true teleop:=true
-ros2 launch tc_gazebo sim.launch.py use_joystick:=true   # optional gamepad
-ros2 launch tc_gazebo sim.launch.py teleop:=false        # no teleop at all
+ros2 launch tc_gazebo sim_lvl16.launch.py rviz:=false
+ros2 launch tc_gazebo sim_lvl16.launch.py for_nav:=true   # Nav2 owns /cmd_vel
+ros2 launch tc_gazebo sim_indoor.launch.py use_joystick:=true
 ```
+
+### Blueprint world (lvl16 figure-8)
+
+`worlds/tc_lvl16.sdf` — 22.12×12.74 m figure-8 corridor, white walls, tiled floor.
+Origin at map center; spawn is the lower-left corridor.
+
+```bash
+# Drive / map
+ros2 launch tc_gazebo sim_lvl16.launch.py rviz:=false   # terminal 1
+./scripts/map_sim.sh                                    # terminal 2
+./scripts/save_map.sh lvl16
+
+# Navigate
+ros2 launch tc_gazebo sim_lvl16.launch.py for_nav:=true  # terminal 1
+ros2 launch tc_gazebo nav_lvl16.launch.py                # terminal 2
+```
+
+Remap after switching worlds — old maps won’t match.
 
 ### Drive
 
@@ -155,8 +185,8 @@ Drive the indoor world with keyboard teleop. When the map looks good:
 ./scripts/save_map.sh my_office    # -> maps/my_office.{pgm,yaml}
 ```
 
-Do not edit `thundercar_ws/software`. The included world `tc_indoor.sdf` is a
-10×8 m room with partitions and boxes so laser SLAM has structure.
+Do not edit `thundercar_ws/software`. Worlds in `tc_gazebo/worlds/`:
+`tc_indoor.sdf` (small room) and `tc_lvl16.sdf` (figure-8 blueprint).
 
 ## Localization (on a saved map)
 
@@ -183,10 +213,13 @@ Stop mapping/localization first. Restart sim so Nav2 owns `/cmd_vel`:
 sudo apt install ros-jazzy-navigation2
 
 # Terminal 1 — no teleop bridge
-ros2 launch tc_gazebo sim.launch.py rviz:=false teleop:=false ackermann_bridge:=false
+ros2 launch tc_gazebo sim_lvl16.launch.py for_nav:=true
+# or: ros2 launch tc_gazebo sim_indoor.launch.py for_nav:=true
 
 # Terminal 2
-./scripts/navigate_sim.sh
+ros2 launch tc_gazebo nav_lvl16.launch.py
+# or: ros2 launch tc_gazebo nav_indoor.launch.py
+# or: ./scripts/navigate_sim.sh maps/my_indoor.yaml
 # or: ./scripts/navigate_sim.sh maps/my_indoor.yaml
 ```
 

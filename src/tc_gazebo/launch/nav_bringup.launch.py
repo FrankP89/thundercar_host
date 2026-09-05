@@ -1,7 +1,8 @@
 """Localization + Nav2 for Thundercar sim (map → drive to goal).
 
-Expects sim already running WITHOUT teleop cmd_vel bridge:
-  ros2 launch tc_gazebo sim.launch.py rviz:=false teleop:=false ackermann_bridge:=false
+Prefer per-map launches:
+  ros2 launch tc_gazebo sim_lvl16.launch.py for_nav:=true
+  ros2 launch tc_gazebo nav_lvl16.launch.py
 """
 
 import os

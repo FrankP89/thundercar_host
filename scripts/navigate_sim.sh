@@ -2,11 +2,13 @@
 # Localize + Nav2 navigate-to-pose against a running Thundercar Gazebo sim.
 #
 # Terminal 1 — sim WITHOUT teleop / ackermann zeros (Nav2 owns /cmd_vel):
-#   ros2 launch tc_gazebo sim.launch.py rviz:=false teleop:=false ackermann_bridge:=false
+#   ros2 launch tc_gazebo sim_lvl16.launch.py for_nav:=true
+#   # or:  ros2 launch tc_gazebo sim_indoor.launch.py for_nav:=true
 #
 # Terminal 2:
-#   ./scripts/navigate_sim.sh
-#   ./scripts/navigate_sim.sh maps/my_indoor.yaml
+#   ros2 launch tc_gazebo nav_lvl16.launch.py
+#   # or:  ros2 launch tc_gazebo nav_indoor.launch.py
+#   # or:  ./scripts/navigate_sim.sh maps/lvl16.yaml
 #
 # In RViz:
 #   1) Fixed Frame = map

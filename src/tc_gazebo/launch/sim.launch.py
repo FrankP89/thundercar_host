@@ -6,8 +6,10 @@ optionally launches teleop + RViz.
 """
 
 import os
+import re
 import shlex
 import subprocess
+import tempfile
 
 from ament_index_python.packages import PackageNotFoundError, get_package_share_directory
 from launch import LaunchDescription
@@ -27,6 +29,31 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
+def _world_name_from_sdf(world_path: str) -> str:
+    """Read <world name="..."> so bridge / gz services match any world file."""
+    try:
+        with open(world_path, encoding='utf-8') as f:
+            match = re.search(r'<world\s+name="([^"]+)"', f.read())
+        if match:
+            return match.group(1)
+    except OSError:
+        pass
+    return os.path.splitext(os.path.basename(world_path))[0]
+
+
+def _bridge_config_for_world(template_path: str, world_name: str) -> str:
+    """Rewrite hardcoded /world/<name>/ paths for the active Gazebo world."""
+    with open(template_path, encoding='utf-8') as f:
+        cfg = f.read()
+    cfg = re.sub(r'/world/[^/\s"]+/', f'/world/{world_name}/', cfg)
+    tmp = tempfile.NamedTemporaryFile(
+        mode='w', suffix='.yaml', prefix='ros_gz_bridge_', delete=False, encoding='utf-8'
+    )
+    tmp.write(cfg)
+    tmp.close()
+    return tmp.name
+
+
 def _setup(context, *args, **kwargs):
     """Build the launch graph after launch args are resolved (needs context)."""
     tc_desc = get_package_share_directory('tc_description')
@@ -35,6 +62,7 @@ def _setup(context, *args, **kwargs):
     # LaunchConfiguration handles (booleans stay as substitutions for IfCondition)
     use_sim_time = LaunchConfiguration('use_sim_time')
     world = LaunchConfiguration('world').perform(context)
+    world_name = _world_name_from_sdf(world)
     x = LaunchConfiguration('x').perform(context)
     y = LaunchConfiguration('y').perform(context)
     z = LaunchConfiguration('z').perform(context)
@@ -52,14 +80,17 @@ def _setup(context, *args, **kwargs):
     # --- Mesh / world discovery for Gazebo ---------------------------------
     # Gazebo resolves package:// via share roots on GZ_SIM_RESOURCE_PATH.
     # Keep IGN_* alias for older ros_gz helpers.
+    # Include world file dir so relative texture paths (textures/...) resolve.
     share_roots = []
     for prefix in os.environ.get('AMENT_PREFIX_PATH', '').split(os.pathsep):
         share = os.path.join(prefix, 'share')
         if os.path.isdir(share):
             share_roots.append(share)
+    world_dir = os.path.dirname(os.path.abspath(world))
     resource_paths = share_roots + [
         os.path.join(tc_desc, 'meshes'),
         os.path.join(tc_gazebo, 'worlds'),
+        world_dir,
     ]
     existing = os.environ.get('GZ_SIM_RESOURCE_PATH', '')
     if existing:
@@ -106,7 +137,7 @@ def _setup(context, *args, **kwargs):
         has_jsp = False
 
     if has_jsp:
-        bridge_config = os.path.join(tc_gazebo, 'config', 'ros_gz_bridge.yaml')
+        bridge_template = os.path.join(tc_gazebo, 'config', 'ros_gz_bridge.yaml')
         actions_after_rsp.append(
             Node(
                 package='joint_state_publisher',
@@ -122,7 +153,7 @@ def _setup(context, *args, **kwargs):
             )
         )
     else:
-        bridge_config = os.path.join(tc_gazebo, 'config', 'ros_gz_bridge_no_jsp.yaml')
+        bridge_template = os.path.join(tc_gazebo, 'config', 'ros_gz_bridge_no_jsp.yaml')
         actions_after_rsp.append(
             LogInfo(
                 msg='joint_state_publisher not installed — bridging gz joints to '
@@ -130,6 +161,7 @@ def _setup(context, *args, **kwargs):
                 '  sudo apt install ros-jazzy-joint-state-publisher'
             )
         )
+    bridge_config = _bridge_config_for_world(bridge_template, world_name)
 
     # Delay spawn until the world is up. Remove any existing "thundercar" first —
     # a leftover model (old camera orientation) would keep publishing on the same
@@ -154,7 +186,7 @@ def _setup(context, *args, **kwargs):
             ExecuteProcess(
                 cmd=[
                     'bash', '-c',
-                    'gz service -s /world/tc_indoor/remove '
+                    f'gz service -s /world/{world_name}/remove '
                     '--reqtype gz.msgs.Entity --reptype gz.msgs.Boolean '
                     '--timeout 1000 --req \'name: "thundercar", type: MODEL\' '
                     '>/dev/null 2>&1 || true',

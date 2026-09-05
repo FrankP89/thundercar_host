@@ -1,0 +1,208 @@
+<?xml version="1.0" ?>
+<!-- Figure-8 corridor from blueprint (long wall 22.12 m, north wall 12.74 m).
+     Origin at map center. Uniform 1.55 m aisle (N/E/S/W + mid waist) between
+     outer walls and two solid islands. NW / SE stubs match the drawing. -->
+<sdf version="1.9">
+  <world name="tc_lvl16">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 12 0 0 0</pose>
+      <diffuse>0.95 0.95 0.92 1</diffuse>
+      <specular>0.25 0.25 0.25 1</specular>
+      <direction>-0.25 0.15 -0.95</direction>
+    </light>
+    <light type="directional" name="fill">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 8 0 0 0</pose>
+      <diffuse>0.35 0.35 0.4 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <direction>0.4 -0.2 -0.7</direction>
+    </light>
+
+    <!-- Gray tiled floor (texture repeats; size covers building + margin) -->
+    <model name="floor">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>40 40</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>40 40</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.55 0.56 0.58 1</ambient>
+            <diffuse>0.65 0.66 0.68 1</diffuse>
+            <specular>0.08 0.08 0.08 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>textures/floor_tile.png</albedo_map>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!--
+      Figure-8 corridor. Uniform aisle width C=1.55 m on N/E/S/W and at the waist.
+        H=22.12  W_north=12.74 = main_w(10.633) + stub(2.107)
+        wall_t=0.20  island 7.133 x 8.535
+      Origin = geometric center of overall footprint.
+    -->
+
+    <!-- Outer west wall (main body); outer face at x=-5.3167 -->
+    <model name="wall_outer_west">
+      <static>true</static>
+      <pose>-5.2167 0 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.20 22.12 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.20 22.12 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+            <specular>0.15 0.15 0.15 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Outer east wall (main body); outer face at x=+5.3167 -->
+    <model name="wall_outer_east">
+      <static>true</static>
+      <pose>5.2167 0 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.20 22.12 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.20 22.12 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+            <specular>0.15 0.15 0.15 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Outer north wall (main + NW stub) length 12.74; outer face at y=+11.06 -->
+    <model name="wall_outer_north">
+      <static>true</static>
+      <pose>-1.0533 10.96 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>12.74 0.20 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>12.74 0.20 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+            <specular>0.15 0.15 0.15 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Outer south wall (main + SE stub) length 12.74; outer face at y=-11.06 -->
+    <model name="wall_outer_south">
+      <static>true</static>
+      <pose>1.0533 -10.96 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>12.74 0.20 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>12.74 0.20 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+            <specular>0.15 0.15 0.15 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Stub end caps (close the wing tips) -->
+    <model name="wall_stub_nw_end">
+      <static>true</static>
+      <pose>-6.27 10.085 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.20 1.55 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.20 1.55 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_stub_se_end">
+      <static>true</static>
+      <pose>6.27 -10.085 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.20 1.55 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.20 1.55 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Islands sized so N/E/S/W aisles and mid-waist are all C=1.55 m -->
+    <model name="island_north">
+      <static>true</static>
+      <pose>0 5.0425 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>7.1334 8.535 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>7.1334 8.535 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+            <specular>0.15 0.15 0.15 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="island_south">
+      <static>true</static>
+      <pose>0 -5.0425 1.0 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>7.1334 8.535 2.0</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>7.1334 8.535 2.0</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.94 1</ambient>
+            <diffuse>0.98 0.98 1.0 1</diffuse>
+            <specular>0.15 0.15 0.15 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
