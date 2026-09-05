@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Gazebo Harmonic plugins and RGB-D sensors for Thundercar -->
+  <xacro:macro name="thundercar_gazebo">
+
+    <!-- Chassis friction / contact -->
+    <gazebo reference="base_link">
+      <mu1>0.2</mu1>
+      <mu2>0.2</mu2>
+    </gazebo>
+
+    <!-- Ackermann steering (rear drive, front steer) -->
+    <gazebo>
+      <plugin filename="gz-sim-ackermann-steering-system"
+              name="gz::sim::systems::AckermannSteering">
+        <left_joint>back_left_wheel_joint</left_joint>
+        <right_joint>back_right_wheel_joint</right_joint>
+        <left_steering_joint>left_hinge_joint</left_steering_joint>
+        <right_steering_joint>right_hinge_joint</right_steering_joint>
+        <wheel_separation>0.243</wheel_separation>
+        <kingpin_width>0.210</kingpin_width>
+        <wheel_base>0.340</wheel_base>
+        <wheel_radius>0.05525</wheel_radius>
+        <!-- Moderate gains: huge P can chatter steering and induce yaw drift -->
+        <steer_p_gain>100.0</steer_p_gain>
+        <steer_d_gain>10.0</steer_d_gain>
+        <topic>/model/thundercar/cmd_vel</topic>
+        <odom_topic>/model/thundercar/odometry</odom_topic>
+        <frame_id>odom</frame_id>
+        <child_frame_id>base_link</child_frame_id>
+        <odom_publish_frequency>50</odom_publish_frequency>
+      </plugin>
+    </gazebo>
+
+    <!-- Publishes default topic: /world/<world>/model/<model>/joint_state -->
+    <gazebo>
+      <plugin filename="gz-sim-joint-state-publisher-system"
+              name="gz::sim::systems::JointStatePublisher"/>
+    </gazebo>
+
+    <!-- Color camera (approx Femto Bolt RGB 1280x720) -->
+    <gazebo reference="camera_color_optical_frame">
+      <sensor name="color_camera" type="camera">
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <visualize>false</visualize>
+        <topic>camera/color/image_raw</topic>
+        <gz_frame_id>camera_color_optical_frame</gz_frame_id>
+        <camera>
+          <horizontal_fov>1.396</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>720</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>15.0</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+      </sensor>
+    </gazebo>
+
+    <!-- Depth camera (approx Femto Bolt depth 640x576) -->
+    <gazebo reference="camera_depth_optical_frame">
+      <sensor name="depth_camera" type="depth_camera">
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <visualize>false</visualize>
+        <topic>camera/depth/image_raw</topic>
+        <gz_frame_id>camera_depth_optical_frame</gz_frame_id>
+        <camera>
+          <horizontal_fov>1.396</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>576</height>
+          </image>
+          <clip>
+            <near>0.2</near>
+            <far>5.0</far>
+          </clip>
+        </camera>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

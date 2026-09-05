@@ -1,6 +1,7 @@
-host_amd/logs/*
-host_amd/devel/*
-host_amd/build/*
-host_amd/install/*
-host_amd/log/*
-host_amd/.catkin_tools
+build/
+install/
+log/
+*.pyc
+__pycache__/
+.colcon/
+host_amd/

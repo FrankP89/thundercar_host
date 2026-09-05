@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- TIM571-like lidar link + Gazebo Harmonic gpu_lidar sensor -->
+  <xacro:macro name="sick_tim571" params="name parent_frame">
+    <joint name="${name}_mount_joint" type="fixed">
+      <origin xyz="0.1415 0 -0.0254" rpy="0 0 0"/>
+      <parent link="${parent_frame}"/>
+      <child link="${name}_mount_link"/>
+    </joint>
+
+    <link name="${name}_mount_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://tc_description/meshes/stl/tim_571.stl" scale="0.1 0.1 0.1"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.03" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.06 0.075 0.086"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.25"/>
+        <origin xyz="0 0 0.03"/>
+        <inertia ixx="0.0003" ixy="0" ixz="0" iyy="0.0003" iyz="0" izz="0.0003"/>
+      </inertial>
+    </link>
+
+    <joint name="${name}_support_joint" type="fixed">
+      <origin xyz="0 0 -0.006" rpy="0 0 ${pi/2}"/>
+      <parent link="${name}_mount_link"/>
+      <child link="${name}_support_link"/>
+    </joint>
+
+    <link name="${name}_support_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://tc_description/meshes/stl/tim_571_support.stl" scale="0.1 0.1 0.1"/>
+        </geometry>
+        <material name="yellow"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.08 0.02 0.01"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.02"/>
+        <origin xyz="0 0 0"/>
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+      </inertial>
+    </link>
+
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${name}_mount_link"/>
+      <child link="${name}"/>
+      <origin xyz="0 0 0.06296" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${name}">
+      <inertial>
+        <mass value="0.01"/>
+        <origin xyz="0 0 0"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <!-- Gazebo Harmonic GPU lidar (~TIM571: ±135 deg) -->
+    <gazebo reference="${name}">
+      <sensor name="${name}_gpu_lidar" type="gpu_lidar">
+        <always_on>true</always_on>
+        <update_rate>15</update_rate>
+        <visualize>false</visualize>
+        <topic>scan</topic>
+        <gz_frame_id>${name}</gz_frame_id>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>811</samples>
+              <resolution>1</resolution>
+              <min_angle>-2.35619449</min_angle>
+              <max_angle>2.35619449</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>0</min_angle>
+              <max_angle>0</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.05</min>
+            <max>10.0</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+</robot>
