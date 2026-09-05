@@ -14,10 +14,14 @@ class OdomToTf(Node):
         self.declare_parameter('odom_topic', '/odom')
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
+        # Use clock-now for TF stamps (avoids TF_OLD_DATA when /odom stamps
+        # reset or lag after Gazebo restarts while RViz stays up).
+        self.declare_parameter('use_odom_stamp', False)
 
         topic = self.get_parameter('odom_topic').value
         self.odom_frame = self.get_parameter('odom_frame').value
         self.base_frame = self.get_parameter('base_frame').value
+        self.use_odom_stamp = bool(self.get_parameter('use_odom_stamp').value)
 
         self.br = TransformBroadcaster(self)
         self.sub = self.create_subscription(Odometry, topic, self._cb, 50)
@@ -27,7 +31,10 @@ class OdomToTf(Node):
 
     def _cb(self, msg: Odometry):
         t = TransformStamped()
-        t.header.stamp = msg.header.stamp
+        if self.use_odom_stamp:
+            t.header.stamp = msg.header.stamp
+        else:
+            t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id = self.odom_frame
         t.child_frame_id = self.base_frame
         t.transform.translation.x = msg.pose.pose.position.x

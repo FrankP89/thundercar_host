@@ -13,6 +13,7 @@ from ament_index_python.packages import PackageNotFoundError, get_package_share_
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
+    ExecuteProcess,
     IncludeLaunchDescription,
     LogInfo,
     OpaqueFunction,
@@ -129,24 +130,37 @@ def _setup(context, *args, **kwargs):
             )
         )
 
-    # Delay spawn until the world (and physics) is up
-    spawn = TimerAction(
+    # Delay spawn until the world is up. Remove any existing "thundercar" first —
+    # a leftover model (old camera orientation) would keep publishing on the same
+    # image topics and make the camera blink between side/front views.
+    create = Node(
+        package='ros_gz_sim',
+        executable='create',
+        output='screen',
+        arguments=[
+            '-name', 'thundercar',
+            '-string', robot_xml,
+            '-x', x,
+            '-y', y,
+            '-z', z,
+            '-Y', yaw,
+        ],
+        parameters=[{'use_sim_time': True}],
+    )
+    remove_then_spawn = TimerAction(
         period=3.0,
         actions=[
-            Node(
-                package='ros_gz_sim',
-                executable='create',
-                output='screen',
-                arguments=[
-                    '-name', 'thundercar',
-                    '-string', robot_xml,
-                    '-x', x,
-                    '-y', y,
-                    '-z', z,
-                    '-Y', yaw,
+            ExecuteProcess(
+                cmd=[
+                    'bash', '-c',
+                    'gz service -s /world/tc_indoor/remove '
+                    '--reqtype gz.msgs.Entity --reptype gz.msgs.Boolean '
+                    '--timeout 1000 --req \'name: "thundercar", type: MODEL\' '
+                    '>/dev/null 2>&1 || true',
                 ],
-                parameters=[{'use_sim_time': True}],
+                output='screen',
             ),
+            TimerAction(period=1.0, actions=[create]),
         ],
     )
 
@@ -233,7 +247,7 @@ def _setup(context, *args, **kwargs):
         gz_sim,
         rsp,
         *actions_after_rsp,
-        spawn,
+        remove_then_spawn,
         bridge,
         odom_tf,
         ack_to_twist,

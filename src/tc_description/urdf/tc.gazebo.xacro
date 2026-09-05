@@ -39,8 +39,10 @@
               name="gz::sim::systems::JointStatePublisher"/>
     </gazebo>
 
-    <!-- Color camera (approx Femto Bolt RGB 1280x720) -->
-    <gazebo reference="camera_color_optical_frame">
+    <!-- Color camera (approx Femto Bolt RGB 1280x720)
+         Gazebo cameras look along the reference link +X axis.
+         camera_link is X-forward; optical frame +X is robot-right (would show the side). -->
+    <gazebo reference="camera_link">
       <sensor name="color_camera" type="camera">
         <always_on>true</always_on>
         <update_rate>30</update_rate>
@@ -68,7 +70,7 @@
     </gazebo>
 
     <!-- Depth camera (approx Femto Bolt depth 640x576) -->
-    <gazebo reference="camera_depth_optical_frame">
+    <gazebo reference="camera_link">
       <sensor name="depth_camera" type="depth_camera">
         <always_on>true</always_on>
         <update_rate>30</update_rate>
