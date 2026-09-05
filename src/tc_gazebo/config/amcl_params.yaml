@@ -1,0 +1,44 @@
+amcl:
+  ros__parameters:
+    use_sim_time: true
+
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
+
+    base_frame_id: base_link
+    odom_frame_id: odom
+    global_frame_id: map
+    scan_topic: /scan
+
+    robot_model_type: nav2_amcl::DifferentialMotionModel
+    tf_broadcast: true
+    transform_tolerance: 1.0
+
+    # Sim GT odom is clean — keep a modest particle cloud
+    min_particles: 500
+    max_particles: 2000
+    kld_err: 0.05
+    kld_z: 0.99
+
+    laser_model_type: likelihood_field
+    laser_max_range: 25.0
+    laser_min_range: 0.05
+    laser_likelihood_max_dist: 2.0
+    max_beams: 60
+
+    update_min_d: 0.1
+    update_min_a: 0.1
+    resample_interval: 1
+
+    recovery_alpha_slow: 0.001
+    recovery_alpha_fast: 0.1
+
+    set_initial_pose: true
+    initial_pose:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0

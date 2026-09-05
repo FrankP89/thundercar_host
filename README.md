@@ -158,6 +158,22 @@ Drive the indoor world with keyboard teleop. When the map looks good:
 Do not edit `thundercar_ws/software`. The included world `tc_indoor.sdf` is a
 10×8 m room with partitions and boxes so laser SLAM has structure.
 
+## Localization (on a saved map)
+
+Stop mapping first. Keep the sim running (`rviz:=false`).
+
+```bash
+# Once: AMCL stack
+sudo apt install ros-jazzy-nav2-amcl ros-jazzy-nav2-lifecycle-manager
+
+./scripts/localize_sim.sh
+# or:  ./scripts/localize_sim.sh maps/my_indoor.yaml
+```
+
+In RViz (Fixed Frame `map`): if the laser does not sit on the walls, use
+**2D Pose Estimate** to place the robot on the map, then drive — the particle
+cloud should tighten.
+
 ## Packages
 
 | Package | Role |
