@@ -174,6 +174,25 @@ In RViz (Fixed Frame `map`): if the laser does not sit on the walls, use
 **2D Pose Estimate** to place the robot on the map, then drive — the particle
 cloud should tighten.
 
+## Navigation (Nav2 — drive to a goal)
+
+Stop mapping/localization first. Restart sim so Nav2 owns `/cmd_vel`:
+
+```bash
+# Once
+sudo apt install ros-jazzy-navigation2
+
+# Terminal 1 — no teleop bridge
+ros2 launch tc_gazebo sim.launch.py rviz:=false teleop:=false ackermann_bridge:=false
+
+# Terminal 2
+./scripts/navigate_sim.sh
+# or: ./scripts/navigate_sim.sh maps/my_indoor.yaml
+```
+
+In RViz: **2D Pose Estimate**, then **2D Goal Pose**. The car should plan a
+path and drive there (Regulated Pure Pursuit → Twist → Gazebo Ackermann).
+
 ## Packages
 
 | Package | Role |

@@ -41,6 +41,7 @@ def _setup(context, *args, **kwargs):
     yaw = LaunchConfiguration('yaw').perform(context)
     rviz = LaunchConfiguration('rviz')
     teleop = LaunchConfiguration('teleop')
+    ackermann_bridge = LaunchConfiguration('ackermann_bridge')
 
     urdf_file = os.path.join(tc_desc, 'urdf', 'tc.urdf.xacro')
     rviz_config = os.path.join(tc_gazebo, 'rviz', 'sim.rviz')
@@ -192,12 +193,14 @@ def _setup(context, *args, **kwargs):
         }],
     )
 
-    # Physical teleop uses AckermannDriveStamped; gz AckermannSteering wants Twist
+    # Physical teleop uses AckermannDriveStamped; gz AckermannSteering wants Twist.
+    # Disable when Nav2 owns /cmd_vel (ackermann_bridge:=false).
     ack_to_twist = Node(
         package='tc_control',
         executable='ackermann_to_twist',
         name='ackermann_to_twist',
         output='screen',
+        condition=IfCondition(ackermann_bridge),
         parameters=[{
             'ackermann_topic': '/ackermann_cmd',
             'twist_topic': '/cmd_vel',
@@ -282,6 +285,11 @@ def generate_launch_description():
             'teleop',
             default_value='true',
             description='Start teleop helpers (keyboard and/or joystick)',
+        ),
+        DeclareLaunchArgument(
+            'ackermann_bridge',
+            default_value='true',
+            description='Ackermann→Twist → /cmd_vel. Set false when Nav2 owns /cmd_vel',
         ),
         DeclareLaunchArgument(
             'use_keyboard',
