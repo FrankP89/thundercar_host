@@ -5,3 +5,5 @@ log/
 __pycache__/
 .colcon/
 host_amd/
+maps/*.pgm
+maps/*.yaml

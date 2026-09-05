@@ -128,34 +128,35 @@ corner stays fixed on the grid while the robot approaches it. If walls slide
 with the robot, Fixed Frame is likely still `base_link`, or an old sim process
 is still publishing wheel odom on `/odom`.
 
-## SLAM / localization (goal B)
+## SLAM / mapping (goal B)
 
-With the sim running, install/run slam on the host (Jazzy packages), or source a
-**read-only** copy of nav tooling. Do not edit `thundercar_ws/software`.
+With the sim running in another terminal:
 
 ```bash
-# Terminal 1 — sim
-source /opt/ros/jazzy/setup.bash
-source ~/Documents/Personal\ Projects/Thundercar/thundercar_host/install/setup.bash
-ros2 launch tc_gazebo sim.launch.py
-
-# Terminal 2 — SLAM (example with apt packages)
+# Once: SLAM deps
 sudo apt install ros-jazzy-slam-toolbox ros-jazzy-nav2-map-server
-ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true
-```
 
-Or, if you have built `software/core_ros2` somewhere compatible, source it and run
-`ros2 launch tc_nav slam.launch.py rviz:=true` (that stack is Humble — prefer
-Jazzy slam_toolbox on this 24.04 host).
+# Build (if you just pulled these files)
+colcon build --symlink-install --packages-select tc_gazebo
+source install/setup.bash
 
-Save a map:
+# Start mapping (prefer sim without its own RViz)
+#   ros2 launch tc_gazebo sim.launch.py rviz:=false
+./scripts/map_sim.sh
+# or:  ros2 launch tc_gazebo slam.launch.py
+#
+# SLAM RViz Fixed Frame starts as odom (avoids TF drop spam). After the map
+# builds, you can switch Fixed Frame to map.```
+
+Drive the indoor world with keyboard teleop. When the map looks good:
 
 ```bash
-ros2 run nav2_map_server map_saver_cli -f ~/maps/sim_indoor
+./scripts/save_map.sh              # -> maps/sim_indoor_<timestamp>.{pgm,yaml}
+./scripts/save_map.sh my_office    # -> maps/my_office.{pgm,yaml}
 ```
 
-The included world `tc_indoor.sdf` is a 10×8 m room with partitions and boxes so
-laser SLAM has structure.
+Do not edit `thundercar_ws/software`. The included world `tc_indoor.sdf` is a
+10×8 m room with partitions and boxes so laser SLAM has structure.
 
 ## Packages
 
