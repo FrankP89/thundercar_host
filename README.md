@@ -234,6 +234,15 @@ ros2 launch tc_gazebo nav_lvl16.launch.py
 In RViz: **2D Pose Estimate**, then **2D Goal Pose**. The car should plan a
 path and drive there (Regulated Pure Pursuit → Twist → Gazebo Ackermann).
 
+If the car gets jammed in a wall/corner:
+
+```bash
+./scripts/unstick.sh          # reverse ~2.5 s
+./scripts/unstick.sh 3.0 0.5  # longer / faster reverse
+```
+
+Then re-set **2D Pose Estimate** and send a new goal.
+
 ## Packages
 
 | Package | Role |
