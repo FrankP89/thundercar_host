@@ -131,6 +131,9 @@ def generate_launch_description():
                 'use_sim_time': use_sim_time,
                 'autostart': autostart,
                 'node_names': lifecycle_nodes,
+                'bond_timeout': 10.0,
+                'bond_respawn_max_duration': 20.0,
+                'attempt_respawn_reconnection': True,
             }],
         ),
     ])

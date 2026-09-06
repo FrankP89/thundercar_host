@@ -70,6 +70,9 @@ def _setup(context, *args, **kwargs):
     rviz = LaunchConfiguration('rviz')
     teleop = LaunchConfiguration('teleop')
     ackermann_bridge = LaunchConfiguration('ackermann_bridge')
+    headless = LaunchConfiguration('headless').perform(context).lower() in (
+        'true', '1', 'yes',
+    )
 
     urdf_file = os.path.join(tc_desc, 'urdf', 'tc.urdf.xacro')
     rviz_config = os.path.join(tc_gazebo, 'rviz', 'sim.rviz')
@@ -102,16 +105,18 @@ def _setup(context, *args, **kwargs):
 
     # --- Gazebo Harmonic ---------------------------------------------------
     # -r = run immediately, -v 1 = modest console verbosity
+    # -s = server only (no gz GUI) — frees the GPU for RViz when GL is flaky
     # Quote the world path: workspace lives under "Personal Projects" (space).
     # ros_gz_sim runs `gz sim` with shell=True; unquoted paths break at the space
     # ("Unable to find or download file") so Gazebo never starts — RViz then shows
     # a white robot with everything stuck at the origin.
+    gz_flags = '-s -r -v 1' if headless else '-r -v 1'
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py'])
         ),
         launch_arguments={
-            'gz_args': f'-r -v 1 {shlex.quote(world)}',
+            'gz_args': f'{gz_flags} {shlex.quote(world)}',
         }.items(),
     )
 
@@ -316,6 +321,11 @@ def generate_launch_description():
         DeclareLaunchArgument('z', default_value='0.15', description='Spawn z [m]'),
         DeclareLaunchArgument('yaw', default_value='0.0', description='Spawn yaw [rad]'),
         DeclareLaunchArgument('rviz', default_value='true', description='Start RViz2'),
+        DeclareLaunchArgument(
+            'headless',
+            default_value='false',
+            description='true: gz server only (-s), no Gazebo GUI (helps RViz on weak/shared GL)',
+        ),
         DeclareLaunchArgument(
             'teleop',
             default_value='true',

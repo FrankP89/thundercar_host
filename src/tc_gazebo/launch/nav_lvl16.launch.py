@@ -37,6 +37,7 @@ def _setup(context, *args, **kwargs):
             launch_arguments={
                 'map': map_yaml,
                 'use_sim_time': LaunchConfiguration('use_sim_time').perform(context),
+                'rviz': LaunchConfiguration('rviz').perform(context),
                 'initial_pose_x': LaunchConfiguration('initial_pose_x').perform(context),
                 'initial_pose_y': LaunchConfiguration('initial_pose_y').perform(context),
                 'initial_pose_yaw': LaunchConfiguration('initial_pose_yaw').perform(context),
@@ -53,6 +54,11 @@ def generate_launch_description():
             description='Override map yaml (default: <ws>/maps/lvl16.yaml)',
         ),
         DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument(
+            'rviz',
+            default_value='true',
+            description='Start RViz with nav2.rviz (set false if GL crashes)',
+        ),
         # Match sim_lvl16 spawn / corridor start
         DeclareLaunchArgument('initial_pose_x', default_value='-4.4'),
         DeclareLaunchArgument('initial_pose_y', default_value='-7.0'),
