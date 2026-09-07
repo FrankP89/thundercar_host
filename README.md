@@ -241,8 +241,26 @@ RViz opens with the map and the Nav2 panel.
 ### In RViz (in order)
 
 1. Toolbar → **2D Pose Estimate** — click and drag on the map to place the robot where it actually is in Gazebo (match position + heading). Laser scans should sit on the walls.
-2. Toolbar → **Nav2 Goal** / **2D Goal Pose** — click where you want the car to go.
+2. Send it somewhere — either a single goal **or** the predefined waypoint tour (below).
 3. Watch it plan and drive.
+
+#### Single goal
+
+Toolbar → **Nav2 Goal** / **2D Goal Pose** — click where you want the car to go.
+
+#### Predefined waypoints (lvl16)
+
+This repo ships a waypoint file for the figure-8 world:
+
+**`maps/wps.yaml`** — seven poses (`waypoint0` … `waypoint6`) around the lvl16 corridor.
+
+Load and run them from the **Navigation 2** panel in RViz:
+
+1. Under **WP-Following**, click **Load WPs**
+2. Open `maps/wps.yaml` (full path under this workspace)
+3. Click **Start Waypoint Following**
+
+The car will visit the waypoints in order. You can also **Save WPs** from RViz after placing your own, if you want a custom tour.
 
 ### If the car gets stuck
 

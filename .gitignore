@@ -7,3 +7,4 @@ __pycache__/
 host_amd/
 maps/*.pgm
 maps/*.yaml
+!maps/wps.yaml
