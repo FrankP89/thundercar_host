@@ -68,7 +68,12 @@ def generate_launch_description():
             default_value='false',
             description='true: rviz/teleop/ackermann_bridge off (Nav2 owns /cmd_vel)',
         ),
-        DeclareLaunchArgument('rviz', default_value='true'),
+        # Default off — Gazebo GUI + RViz together often flicker on shared GL
+        DeclareLaunchArgument(
+            'rviz',
+            default_value='false',
+            description='Start RViz2 (use with headless:=true to avoid GL flicker)',
+        ),
         DeclareLaunchArgument(
             'headless',
             default_value='false',

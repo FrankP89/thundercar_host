@@ -5,6 +5,7 @@ Drive / map:
 
 Nav2 companion:
   ros2 launch tc_gazebo sim_indoor.launch.py for_nav:=true
+  # optional: headless:=true rviz:=true if you want RViz instead of Gazebo GUI
 """
 
 import os
@@ -34,6 +35,8 @@ def _setup(context, *args, **kwargs):
         teleop = LaunchConfiguration('teleop').perform(context)
         ackermann = LaunchConfiguration('ackermann_bridge').perform(context)
 
+    headless = LaunchConfiguration('headless').perform(context)
+
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(sim_launch),
@@ -46,6 +49,7 @@ def _setup(context, *args, **kwargs):
                 'rviz': rviz,
                 'teleop': teleop,
                 'ackermann_bridge': ackermann,
+                'headless': headless,
                 'use_keyboard': LaunchConfiguration('use_keyboard').perform(context),
                 'use_joystick': LaunchConfiguration('use_joystick').perform(context),
                 'use_sim_time': LaunchConfiguration('use_sim_time').perform(context),
@@ -63,7 +67,17 @@ def generate_launch_description():
             default_value='false',
             description='true: rviz/teleop/ackermann_bridge off (Nav2 owns /cmd_vel)',
         ),
-        DeclareLaunchArgument('rviz', default_value='true'),
+        # Default off — Gazebo GUI + RViz together often flicker on shared GL
+        DeclareLaunchArgument(
+            'rviz',
+            default_value='false',
+            description='Start RViz2 (use with headless:=true to avoid GL flicker)',
+        ),
+        DeclareLaunchArgument(
+            'headless',
+            default_value='false',
+            description='true: no Gazebo 3D window (frees GPU for RViz)',
+        ),
         DeclareLaunchArgument('teleop', default_value='true'),
         DeclareLaunchArgument('ackermann_bridge', default_value='true'),
         DeclareLaunchArgument('use_keyboard', default_value='true'),

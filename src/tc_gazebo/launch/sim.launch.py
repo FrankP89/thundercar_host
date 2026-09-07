@@ -320,7 +320,13 @@ def generate_launch_description():
         DeclareLaunchArgument('y', default_value='0.0', description='Spawn y [m]'),
         DeclareLaunchArgument('z', default_value='0.15', description='Spawn z [m]'),
         DeclareLaunchArgument('yaw', default_value='0.0', description='Spawn yaw [rad]'),
-        DeclareLaunchArgument('rviz', default_value='true', description='Start RViz2'),
+        # Default off: Gazebo GUI + RViz on the same GPU often flicker / crash.
+        # Use rviz:=true with headless:=true, or keep Gazebo GUI and skip RViz.
+        DeclareLaunchArgument(
+            'rviz',
+            default_value='false',
+            description='Start RViz2 (prefer headless:=true if enabling this)',
+        ),
         DeclareLaunchArgument(
             'headless',
             default_value='false',
